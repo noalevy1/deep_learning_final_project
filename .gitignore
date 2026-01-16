@@ -7,4 +7,9 @@ src/data/
 *.tar.gz
 *.pt
 *.pth
+# venv
+.venv/
+# python
+__pycache__/
+*.pyc
 

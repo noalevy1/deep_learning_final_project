@@ -9,9 +9,11 @@ from experiment_runner import ExperimentConfig, run_single_experiment
 def main():
     print("Step 5: Fine-tuning from CIFAR-10 checkpoint", flush=True)
 
+    DATA_DIR = r"/Users/noalevy/Desktop/Desktop - Noa’s MacBook Pro/School/MTA/third year/first semester/deep learning/data"
     PRETRAIN_PATH = r"pretrained_cifar10.pt"
 
     cfg = ExperimentConfig(
+        data_dir=DATA_DIR,
         model="simple_bn",
         optimizer="adam",
         lr=1e-4,
