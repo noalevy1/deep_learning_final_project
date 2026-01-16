@@ -1,4 +1,10 @@
 .idea/
 *.iml
 .DS_Store
+# datasets / external data
+data/
+src/data/
+*.tar.gz
+*.pt
+*.pth
 
