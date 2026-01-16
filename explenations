@@ -50,6 +50,8 @@ Step 3 - results:
         However, training dynamics differed. Without dropout, validation performance showed noticeable
         instability in later epochs. A moderate dropout rate (p = 0.2) led to smoother and more stable
         training, while a high dropout rate (p = 0.5) introduced excessive noise and larger fluctuations.
+        Conclusion: Dropout does not affect final accuracy in this setting, but a moderate value (p = 0.2) improves training stability and is therefore preferred.
+
 
     - Augmentation - We compared training the simple_bn model with no augmentation vs. strong augmentation,
         keeping all other settings fixed (Adam, lr = 1e-3, batch size = 16, weight decay = 1e-4,
@@ -65,7 +67,26 @@ Step 3 - results:
         test performance. Given the small dataset and already-high baseline performance, we prefer no
         augmentation (or a milder augmentation) for subsequent experiments.
 
-Conclusion: Dropout does not affect final accuracy in this setting, but a moderate value (p = 0.2) improves training stability and is therefore preferred.
+
+Step 4 - pretrain on external dataset
+
+    - We pretrained our CNN on CIFAR-10 to learn generic visual features such as edges and textures.
+        This serves as a strong initialization before fine-tuning on the target dataset.
+        It worked: the model learned meaningful generic visual features (edges, textures, shapes).
+        Performance level is reasonable: after 10 epochs we reached ~55.7% train accuracy and up
+        to ~59.4% validation accuracy (with some fluctuation).
+        We are not “overfitting hard”: train isn’t near 100% and val is in the same ballpark →
+        the model is learning but still limited by capacity/epochs/optimization.
+        Fluctuating val accuracy is normal with CIFAR (small images, 10 classes) and a relatively
+        small network / short run.
+
+Step 5 - fine tuning on our dataset
+
+    -Fine-tuning from CIFAR-10 significantly accelerated convergence: validation accuracy reached
+    ~0.97 within 4 epochs. The final test accuracy was 0.90, indicating that transfer learning
+    improved training speed and stability, but generalization is still limited by the small dataset
+    and the particular train/val/test split.
+
 
 limitations:
 - our validation sets may be too small or to simple for the model - which explains the high accuracy in almost every test
