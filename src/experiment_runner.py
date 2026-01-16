@@ -32,7 +32,7 @@ class ExperimentConfig:
     test_ratio: float = 0.15
     dropout_p: float = 0.2
     augment: str = "none"   # "none" | "strong"
-
+    pretrained_path: str | None = None
 
 
 def get_device():
@@ -162,6 +162,20 @@ def run_single_experiment(cfg: ExperimentConfig, results_root: str = "results"):
     num_classes = len(class_names)
     model = build_model(cfg.model, num_classes=num_classes, img_size=cfg.img_size, dropout_p=cfg.dropout_p).to(device)
 
+    # ---- load pretrained weights (Step 5) ----
+    if cfg.pretrained_path:
+        ckpt = torch.load(cfg.pretrained_path, map_location="cpu")
+        state = ckpt["model_state_dict"] if isinstance(ckpt, dict) and "model_state_dict" in ckpt else ckpt
+
+        model_state = model.state_dict()
+        filtered = {k: v for k, v in state.items() if k in model_state and v.shape == model_state[k].shape}
+        missing, unexpected = model.load_state_dict(filtered, strict=False)
+
+        print(f"Loaded pretrained weights from {cfg.pretrained_path}")
+        print(f" - loaded: {len(filtered)} tensors")
+        print(f" - missing keys: {len(missing)}")
+        print(f" - unexpected keys: {len(unexpected)}")
+
     criterion = nn.CrossEntropyLoss()
     optimizer = build_optimizer(cfg.optimizer, model.parameters(), cfg.lr, cfg.weight_decay, cfg.momentum)
 
@@ -170,6 +184,7 @@ def run_single_experiment(cfg: ExperimentConfig, results_root: str = "results"):
         f"{ts}_step3_model-{cfg.model}_opt-{cfg.optimizer}_lr-{cfg.lr}"
         f"_bs-{cfg.batch_size}_wd-{cfg.weight_decay}"
         f"_drop-{cfg.dropout_p}_aug-{cfg.augment}_norm-{cfg.normalize}"
+        f"_pre-{Path(cfg.pretrained_path).stem}" if cfg.pretrained_path else ""
     )
     run_dir = Path(results_root) / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
