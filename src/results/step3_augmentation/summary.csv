@@ -1,0 +1,3 @@
+run_dir,model,optimizer,lr,batch_size,weight_decay,best_val_acc,test_acc,dropout_p,augment
+results/2026-01-16_12-57-48_step3_model-simple_bn_opt-adam_lr-0.001_bs-16_wd-0.0001_drop-0.2_aug-none_norm-none,simple_bn,adam,0.001,16,0.0001,1.0,1.0,0.2,none
+results/2026-01-16_12-58-10_step3_model-simple_bn_opt-adam_lr-0.001_bs-16_wd-0.0001_drop-0.2_aug-strong_norm-none,simple_bn,adam,0.001,16,0.0001,1.0,0.9666666666666667,0.2,strong

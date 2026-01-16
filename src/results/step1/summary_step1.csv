@@ -1,0 +1,9 @@
+run_dir,model,optimizer,lr,batch_size,weight_decay,best_val_acc,test_acc
+results/2026-01-16_11-13-36_step1_model-simple_opt-adam_lr-0.001_bs-16_wd-0.0_norm-none,simple,adam,0.001,16,0.0,1.0,0.9666666666666667
+results/2026-01-16_11-14-59_step1_model-simple_opt-adam_lr-0.0003_bs-16_wd-0.0_norm-none,simple,adam,0.0003,16,0.0,1.0,0.9666666666666667
+results/2026-01-16_11-15-21_step1_model-simple_opt-sgd_lr-0.01_bs-16_wd-0.0_norm-none,simple,sgd,0.01,16,0.0,0.6,0.5333333333333333
+results/2026-01-16_11-15-42_step1_model-simple_opt-sgd_lr-0.003_bs-16_wd-0.0_norm-none,simple,sgd,0.003,16,0.0,1.0,0.9666666666666667
+results/2026-01-16_11-16-03_step1_model-deeper_opt-adam_lr-0.001_bs-16_wd-0.0_norm-none,deeper,adam,0.001,16,0.0,1.0,0.9666666666666667
+results/2026-01-16_11-16-29_step1_model-deeper_opt-adam_lr-0.0003_bs-16_wd-0.0_norm-none,deeper,adam,0.0003,16,0.0,1.0,0.9333333333333333
+results/2026-01-16_11-16-54_step1_model-deeper_opt-sgd_lr-0.01_bs-16_wd-0.0_norm-none,deeper,sgd,0.01,16,0.0,0.9333333333333333,0.9666666666666667
+results/2026-01-16_11-17-22_step1_model-deeper_opt-sgd_lr-0.003_bs-16_wd-0.0_norm-none,deeper,sgd,0.003,16,0.0,0.7,0.7333333333333333

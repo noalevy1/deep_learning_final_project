@@ -1,0 +1,3 @@
+run_dir,model,optimizer,lr,batch_size,weight_decay,best_val_acc,test_acc
+results/2026-01-16_11-54-47_step2_model-simple_opt-adam_lr-0.001_bs-16_wd-0.0_norm-none,simple,adam,0.001,16,0.0,1.0,0.9666666666666667
+results/2026-01-16_11-55-28_step2_model-simple_bn_opt-adam_lr-0.001_bs-16_wd-0.0_norm-none,simple_bn,adam,0.001,16,0.0,1.0,1.0

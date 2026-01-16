@@ -1,0 +1,71 @@
+step 1 results:
+
+    - ADAM (both simple and deeper) - best_val_acc almost always 1.0 and test_acc is approx. 0.9667
+    - SGD is sensitive to learning rate:
+        - simple + learning rate=0.003 is good
+        - but simple + learning rate=0.01 is bad!
+        - in deeper it's the opposite - lr=0.01 is good, lr=0.003 is bad
+
+baseline for next steps:
+    - simple + ADAM + 0.003
+
+step 2 results (run with batchNorm):
+
+    - Baseline (simple + ADAM + lr=0.003) - best_val_acc = 1.0, test_acc = 0.9667
+    - BatchNorm (simple_bn + ADAM + lr=0.003) - best_val_acc = 1.0, test_acc = 1.0
+    - we can see that BN did not change the best_val_acc but raised the test_acc
+
+    Why there are "jumps" in val_loss?
+    - Probably because the validation set is relatively small
+    - Batch size is small (16)
+    - val_loss = 0.0000 - probably is not 0 but printed this way because of rounding, or the model is particularly confident
+
+    Conclusion for this step:
+
+    - The baseline model achieved perfect training accuracy relatively early,
+        indicating strong fitting to the training data. However, the validation accuracy and
+        loss exhibited noticeable fluctuations, suggesting limited stability and potential overfitting.
+    - When Batch Normalization was introduced, training became less stable during the initial epochs,
+        with significant fluctuations in validation loss. This behavior is expected, as BN relies on
+        batch-wise statistics that are still noisy early in training.
+    - Despite this initial instability, the BN model demonstrated superior generalization.
+        It achieved perfect validation and test accuracy, while maintaining slightly lower training accuracy,
+        indicating reduced overfitting.
+    - Overall, Batch Normalization improved generalization and robustness at the cost of noisier early training dynamics.
+
+Step 3 - results:
+    - Weight dacay - We evaluated L2 regularization (weight decay) using the same architecture and
+        training setup while varying the weight decay coefficient (0, 1e-4, 1e-3). All three settings
+        achieved identical best validation accuracy and perfect test accuracy, indicating that the
+        dataset is relatively easy for the chosen model under the current split.
+        However, training dynamics differed: the model without weight decay exhibited occasional
+        instability in validation loss and accuracy in late epochs, suggesting over-confident predictions
+        and reduced robustness. We therefore selected a small weight decay value (1e-4) for subsequent
+        experiments, as it maintained perfect performance while improving stability.
+
+    - Dropout - We examined the effect of dropout on the batch-normalized model (simple_bn) using Adam
+        (lr = 1e-3, weight decay = 1e-4). Dropout rates of 0.0, 0.2, and 0.5 were tested.
+        All configurations achieved identical results, with a best validation accuracy of 1.0 and a test
+        accuracy of 1.0. Therefore, dropout did not improve final generalization performance on this dataset.
+        However, training dynamics differed. Without dropout, validation performance showed noticeable
+        instability in later epochs. A moderate dropout rate (p = 0.2) led to smoother and more stable
+        training, while a high dropout rate (p = 0.5) introduced excessive noise and larger fluctuations.
+
+    - Augmentation - We compared training the simple_bn model with no augmentation vs. strong augmentation,
+        keeping all other settings fixed (Adam, lr = 1e-3, batch size = 16, weight decay = 1e-4,
+        dropout p = 0.2, same dataset split).
+        With no augmentation, the model reached best validation accuracy = 1.0 and test accuracy = 1.0,
+        converging extremely quickly (training accuracy hit 1.0 by epoch 2 and validation accuracy reached
+        1.0 by epoch 5). With strong augmentation, validation accuracy also reached 1.0 (first at epoch 6),
+        but training converged more slowly and was noticeably noisier (training accuracy mostly stayed
+        below 1.0, and validation loss/accuracy fluctuated more, including a large validation-loss spike
+        at epoch 11). Importantly, strong augmentation slightly reduced test accuracy to 0.9667, despite
+        achieving perfect validation accuracy.
+        Conclusion: In this setting, strong augmentation did not improve generalization and slightly hurt
+        test performance. Given the small dataset and already-high baseline performance, we prefer no
+        augmentation (or a milder augmentation) for subsequent experiments.
+
+Conclusion: Dropout does not affect final accuracy in this setting, but a moderate value (p = 0.2) improves training stability and is therefore preferred.
+
+limitations:
+- our validation sets may be too small or to simple for the model - which explains the high accuracy in almost every test

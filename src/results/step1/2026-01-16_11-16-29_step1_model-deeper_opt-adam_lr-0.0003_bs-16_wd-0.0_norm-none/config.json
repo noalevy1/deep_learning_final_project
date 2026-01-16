@@ -1,0 +1,22 @@
+{
+  "data_dir": "/Users/noalevy/Desktop/Desktop - Noa\u2019s MacBook Pro/School/MTA/third year/first semester/deep learning/data",
+  "model": "deeper",
+  "optimizer": "adam",
+  "img_size": 224,
+  "batch_size": 16,
+  "epochs": 20,
+  "lr": 0.0003,
+  "weight_decay": 0.0,
+  "momentum": 0.9,
+  "seed": 42,
+  "normalize": "none",
+  "train_ratio": 0.7,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "class_names": [
+    "AI photos",
+    "Real photos"
+  ],
+  "device": "mps",
+  "run_name": "2026-01-16_11-16-29_step1_model-deeper_opt-adam_lr-0.0003_bs-16_wd-0.0_norm-none"
+}
