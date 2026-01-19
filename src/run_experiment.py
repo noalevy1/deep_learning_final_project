@@ -137,14 +137,14 @@ def main():
     normalize = None if args.normalize == "none" else args.normalize
 
     train_loader, val_loader, test_loader, class_names = get_dataloaders(
-        data_dir=args.data_dir,
+        data_dir="args.data_dir",
         batch_size=args.batch_size,
         img_size=args.img_size,
         train_ratio=0.7,
         val_ratio=0.15,
         test_ratio=0.15,
         seed=args.seed,
-        normalize=normalize,   # <- דורש את שינוי data.py
+        normalize=normalize,
     )
 
     num_classes = len(class_names)
@@ -203,7 +203,6 @@ def main():
             )
             print(f"saved {best_path} (best_val_acc={best_val_acc:.4f})")
 
-    # test עם המודל הכי טוב
     ckpt = torch.load(best_path, map_location="cpu")
     model.load_state_dict(ckpt["model_state_dict"])
     model.to(device)

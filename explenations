@@ -87,6 +87,76 @@ Step 5 - fine tuning on our dataset
     improved training speed and stability, but generalization is still limited by the small dataset
     and the particular train/val/test split.
 
+Step 6 - Transfer Learning with a Pretrained Network (Frozen Backbone)
+
+    We loaded a ResNet50 pretrained on ImageNet and replaced the final fully connected layer to match our binary classification task.
+    All convolutional layers were frozen, and only the final classification head was trained.
+    Experimental setup:
+    Backbone: ResNet50 pretrained on ImageNet
+    Trainable parameters: final FC layer only
+    Input resolution: 224×224
+    Normalization: ImageNet statistics
+    Optimizer: Adam
+    Learning rate: 1e-3
+    No data augmentation
+    Results:
+    Validation accuracy quickly reached 1.0
+    Test accuracy reached 1.0
+    Training converged extremely fast (within a few epochs)
+
+    Analysis:
+    The strong pretrained ImageNet features transferred very well to our dataset, even without updating the convolutional layers.
+    This indicates that the visual patterns required for our task are largely generic and already captured by high-level ImageNet features.
+    However, the rapid convergence and perfect accuracy suggest that the dataset is relatively small and possibly easy, limiting the ability to clearly distinguish between different transfer strategies based on accuracy alone.
+
+    Conclusion:
+    Training only the classifier head on top of a frozen ResNet50 backbone is sufficient to achieve excellent performance on this dataset.
+    However, this setup may limit further adaptation to domain-specific features.
+
+Step 7- Fine-Tuning ResNet50 (Unfreezing Layer4 + FC)
+
+    To allow deeper adaptation to the target dataset, we unfroze the top convolutional block (layer4) in addition to the final FC layer and fine-tuned the network using discriminative learning rates.
+    Experimental setup:
+    Trainable layers: layer4 + FC
+    Backbone learning rate: 1e-5 (0.1 × base LR)
+    Head learning rate: 1e-4
+    Optimizer: Adam
+    Normalization: ImageNet
+    Compared no augmentation vs. strong augmentation
+    Results- No Augmentation
+    Best validation accuracy: 1.0
+    Test accuracy: 1.0
+    Validation accuracy initially remained at ~0.5 for several epochs, then rapidly increased.
+
+    Interpretation:
+    The early plateau is likely due to the small validation set and overconfident predictions during early fine-tuning.
+    Once the unfrozen layers adapted, the model achieved perfect generalization on this split.
+    Fine-tuning improved flexibility without harming performance.
+    Results- Strong Augmentation
+    Best validation accuracy: ~0.97
+    Test accuracy: ~0.93
+    Training accuracy remained high, but validation accuracy fluctuated and did not fully recover.
+
+    Interpretation:
+    Strong augmentation introduced excessive variability relative to the dataset size.
+    While augmentation slowed overfitting, it also distorted discriminative visual cues.
+    This resulted in reduced generalization compared to the no-augmentation setup.
+
+    Overall Conclusion (Step 7)
+    Fine-tuning the upper layers of ResNet50 allowed the model to better adapt to the target dataset, but only when regularization was applied carefully.
+    Fine-tuning without aggressive augmentation achieved the best performance.
+    Strong augmentation degraded test accuracy, despite high training accuracy.
+    This highlights the importance of matching regularization strength to dataset size and task complexity.
 
 limitations:
 - our validation sets may be too small or to simple for the model - which explains the high accuracy in almost every test
+
+
+Final Reflection:
+During this project, the architectural choice that mattered most was not depth alone, but the ability to train stably and generalize on a small dataset. Our simple CNN already achieved very high validation accuracy, but the results showed that training dynamics (stability, convergence behavior, and sensitivity) were more informative than accuracy alone due to the small validation/test splits.
+In optimization, Adam consistently provided strong and reliable performance with minimal tuning, while SGD with momentum was highly sensitive to the learning rate and behaved differently across architectures. This highlighted the practical importance of hyperparameter sensitivity: the “same” optimizer can succeed or fail depending on both the network capacity and the selected LR.
+Batch Normalization improved generalization and robustness. While the best validation accuracy remained similar, the BN model achieved better test accuracy and smoother behavior overall, indicating reduced overfitting and improved stability.
+Regularization results were subtle because the dataset was relatively easy for the chosen split. Weight decay and dropout did not change final accuracy, but they improved training stability. In contrast, strong data augmentation sometimes reduced test performance, suggesting that aggressive augmentation can distort relevant cues when data is limited.
+Transfer learning provided the clearest practical advantage. Pretraining on CIFAR-10 led to faster convergence on the target dataset, but did not improve the final test accuracy in our split (test ≈ 0.90), likely due to domain mismatch and limited target data. Using a pretrained ResNet50 (ImageNet) was the strongest approach: training only the classifier head already reached excellent performance, and fine-tuning the top layers achieved perfect performance without needing extensive training.
+With more time and data, the first improvement would be to increase dataset size and strengthen evaluation (larger validation/test, cross-validation, and additional metrics such as confusion matrix and calibration). I would also explore milder augmentation policies, and systematically tune discriminative learning rates for fine-tuning to avoid over-regularization.
+Overall, the main lesson is that in small datasets, the most valuable outcomes are understanding stability, sensitivity, and generalization — not maximizing accuracy on a single split.

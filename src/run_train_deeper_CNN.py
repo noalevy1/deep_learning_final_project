@@ -7,7 +7,6 @@ from data import get_dataloaders
 from models import DeeperCNN
 
 
-DATA_DIR = Path("/Users/noalevy/Desktop/Desktop - Noa’s MacBook Pro/School/MTA/third year/first semester/deep learning/data")
 IMG_SIZE = 224
 BATCH_SIZE = 16
 EPOCHS = 20

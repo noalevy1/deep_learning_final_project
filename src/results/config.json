@@ -1,0 +1,27 @@
+{
+  "data_dir": "C:\\Users\\97254\\iCloudDrive\\\u05e9\u05e0\u05d4 \u05d2\\\u05dc\u05de\u05d9\u05d3\u05d4 \u05e2\u05de\u05d5\u05e7\u05d4\\project 4\\deep_learning_final_project\\data",
+  "model": "resnet50",
+  "optimizer": "adam",
+  "img_size": 224,
+  "batch_size": 16,
+  "epochs": 10,
+  "lr": 0.0001,
+  "weight_decay": 0.0001,
+  "momentum": 0.9,
+  "seed": 42,
+  "normalize": "imagenet",
+  "train_ratio": 0.7,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "dropout_p": 0.2,
+  "augment": "strong",
+  "pretrained_path": null,
+  "pretrained": true,
+  "freeze_mode": "layer4",
+  "class_names": [
+    "AI photos",
+    "Real photos"
+  ],
+  "device": "cpu",
+  "run_name": ""
+}

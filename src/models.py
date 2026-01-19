@@ -111,3 +111,30 @@ class DeeperCNN(nn.Module):
         x = torch.flatten(x, 1)
         return self.classifier(x)
 
+from torchvision import models
+import torch.nn as nn
+
+class ResNet50Transfer(nn.Module):
+    def __init__(self, num_classes: int, pretrained: bool = True):
+        super().__init__()
+        weights = models.ResNet50_Weights.DEFAULT if pretrained else None
+        self.net = models.resnet50(weights=weights)
+
+        in_features = self.net.fc.in_features
+        self.net.fc = nn.Linear(in_features, num_classes)
+
+    def forward(self, x):
+        return self.net(x)
+
+    def freeze_backbone(self):
+        for p in self.net.parameters():
+            p.requires_grad = False
+        for p in self.net.fc.parameters():
+            p.requires_grad = True
+
+    def unfreeze_layer4_and_fc(self):
+        # open layer4 + fc (common fine-tune setup)
+        for p in self.net.layer4.parameters():
+            p.requires_grad = True
+        for p in self.net.fc.parameters():
+            p.requires_grad = True

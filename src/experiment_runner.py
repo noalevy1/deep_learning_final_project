@@ -5,6 +5,9 @@ from pathlib import Path
 from datetime import datetime
 import json
 import csv
+from models import ResNet50Transfer
+from pathlib import Path
+
 
 import torch
 import torch.nn as nn
@@ -16,9 +19,9 @@ from models import SimpleCNN, SimpleCNN_BN, DeeperCNN
 
 @dataclass
 class ExperimentConfig:
-    data_dir: str
-    model: str                 # "simple" | "deeper"
-    optimizer: str             # "adam" | "sgd"
+    data_dir: str = ""
+    model: str = ""                # "simple" | "deeper"
+    optimizer: str = ""            # "adam" | "sgd"
     img_size: int = 224
     batch_size: int = 16
     epochs: int = 20
@@ -33,6 +36,8 @@ class ExperimentConfig:
     dropout_p: float = 0.2
     augment: str = "none"   # "none" | "strong"
     pretrained_path: str | None = None
+    pretrained: bool = False  # relevant for resnet50
+    freeze_mode: str = "none"  # "none" | "backbone" | "layer4"
 
 
 def get_device():
@@ -53,15 +58,18 @@ def set_seed(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
-def build_model(name: str, num_classes: int, img_size: int, dropout_p: float):
+def build_model(name: str, num_classes: int, img_size: int, dropout_p: float, pretrained: bool = False):
     name = name.lower()
     if name == "simple":
         return SimpleCNN(num_classes=num_classes, img_size=img_size, dropout_p=dropout_p)
     if name == "simple_bn":
         return SimpleCNN_BN(num_classes=num_classes, img_size=img_size, dropout_p=dropout_p)
     if name == "deeper":
-        return DeeperCNN(num_classes=num_classes, img_size=img_size, dropout_p=dropout_p)
-    raise ValueError("model must be: simple | deeper")
+        return DeeperCNN(num_classes=num_classes, img_size=img_size)
+    if name == "resnet50":
+        return ResNet50Transfer(num_classes=num_classes, pretrained=pretrained)
+    raise ValueError("model must be: simple | simple_bn | deeper | resnet50")
+
 
 
 def build_optimizer(name: str, params, lr: float, weight_decay: float, momentum: float):
@@ -142,6 +150,9 @@ def plot_history(history, out_dir: Path, title: str):
 
 
 def run_single_experiment(cfg: ExperimentConfig, results_root: str = "results"):
+    PROJECT_ROOT = Path(__file__).resolve().parents[1]  # src -> project root
+    DATA_DIR = PROJECT_ROOT / "data"
+    cfg.data_dir = str(DATA_DIR)
     set_seed(cfg.seed)
     device = get_device()
 
@@ -180,11 +191,25 @@ def run_single_experiment(cfg: ExperimentConfig, results_root: str = "results"):
     optimizer = build_optimizer(cfg.optimizer, model.parameters(), cfg.lr, cfg.weight_decay, cfg.momentum)
 
     ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    pre_tag = "none"
+    if cfg.pretrained_path:
+        pre_tag = Path(cfg.pretrained_path).stem
+    elif getattr(cfg, "pretrained", False):
+        pre_tag = "imagenet"
+
     run_name = (
-        f"{ts}_step3_model-{cfg.model}_opt-{cfg.optimizer}_lr-{cfg.lr}"
-        f"_bs-{cfg.batch_size}_wd-{cfg.weight_decay}"
-        f"_drop-{cfg.dropout_p}_aug-{cfg.augment}_norm-{cfg.normalize}"
-        f"_pre-{Path(cfg.pretrained_path).stem}" if cfg.pretrained_path else ""
+        f"{ts}"
+        f"_model-{cfg.model}"
+        f"_opt-{cfg.optimizer}"
+        f"_lr-{cfg.lr}"
+        f"_bs-{cfg.batch_size}"
+        f"_wd-{cfg.weight_decay}"
+        f"_drop-{cfg.dropout_p}"
+        f"_aug-{cfg.augment}"
+        f"_norm-{cfg.normalize}"
+        f"_freeze-{getattr(cfg, 'freeze_mode', 'none')}"
+        f"_pre-{pre_tag}"
     )
     run_dir = Path(results_root) / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
