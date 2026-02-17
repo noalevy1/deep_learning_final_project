@@ -2,28 +2,35 @@ import ssl
 import certifi
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
+from pathlib import Path
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
 from models import SimpleCNN_BN
-from experiment_runner import get_device, set_seed, run_epoch
+from experiment_runner import get_device, set_seed, run_epoch, get_project_root
+
 
 def main():
     print("Step 4: Pretraining on CIFAR-10")
 
+    project_root = get_project_root()
+    results_root = project_root / "results" / "step4_pretrain_cifar"
+    results_root.mkdir(parents=True, exist_ok=True)
+
     set_seed(42)
     device = get_device()
 
-    # CIFAR-10 transforms
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
 
-    train_ds = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
-    test_ds  = datasets.CIFAR10(root="./data", train=False, download=True, transform=transform)
+    cifar_root = project_root / "data" / "cifar10"
+
+    train_ds = datasets.CIFAR10(root=str(cifar_root), train=True, download=True, transform=transform)
+    test_ds  = datasets.CIFAR10(root=str(cifar_root), train=False, download=True, transform=transform)
 
     train_loader = DataLoader(train_ds, batch_size=64, shuffle=True)
     test_loader  = DataLoader(test_ds, batch_size=64, shuffle=False)
@@ -51,9 +58,10 @@ def main():
             f"train acc {train_acc:.4f} | val acc {val_acc:.4f}"
         )
 
-    # save pretrained weights
-    torch.save(model.state_dict(), "pretrained_cifar10.pt")
-    print("Saved pretrained weights to pretrained_cifar10.pt")
+    ckpt_path = results_root / "pretrained_cifar10.pt"
+    torch.save(model.state_dict(), ckpt_path)
+    print(f"Saved pretrained weights to {ckpt_path}")
+
 
 if __name__ == "__main__":
     main()

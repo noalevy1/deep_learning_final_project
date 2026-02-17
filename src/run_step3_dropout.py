@@ -1,10 +1,14 @@
+from experiment_runner import ExperimentConfig, run_many_experiments, get_project_root
+
 if __name__ == "__main__":
-    from experiment_runner import ExperimentConfig, run_many_experiments
+    project_root = get_project_root()  # <project_root>/
+    data_dir = project_root / "data"
+    results_root = project_root / "results" / "step3_dropout"
 
-
-    print("main3 starts")
+    print("step 3 (dropout) starts", flush=True)
 
     base = dict(
+        data_dir=str(data_dir),
         model="simple_bn",
         optimizer="adam",
         lr=1e-3,
@@ -16,12 +20,9 @@ if __name__ == "__main__":
     )
 
     configs = [
-        ExperimentConfig(data_dir=DATA_DIR, model="simple_bn", optimizer="adam", lr=1e-3, weight_decay=1e-4,
-                         dropout_p=0.0, augment="none"),
-        ExperimentConfig(data_dir=DATA_DIR, model="simple_bn", optimizer="adam", lr=1e-3, weight_decay=1e-4,
-                         dropout_p=0.2, augment="none"),
-        ExperimentConfig(data_dir=DATA_DIR, model="simple_bn", optimizer="adam", lr=1e-3, weight_decay=1e-4,
-                         dropout_p=0.5, augment="none"),
+        ExperimentConfig(**base, dropout_p=0.0),
+        ExperimentConfig(**base, dropout_p=0.2),
+        ExperimentConfig(**base, dropout_p=0.5),
     ]
 
-    print(run_many_experiments(configs, results_root="results"), flush=True)
+    print(run_many_experiments(configs, results_root=str(results_root)), flush=True)

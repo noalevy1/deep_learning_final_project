@@ -7,6 +7,12 @@ from data import get_dataloaders
 from models import DeeperCNN
 
 
+def get_project_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+project_root = get_project_root()
+DATA_DIR = project_root / "data"
 IMG_SIZE = 224
 BATCH_SIZE = 16
 EPOCHS = 20
@@ -14,9 +20,11 @@ LR = 1e-3
 WEIGHT_DECAY = 0.0
 SEED = 42
 
-SAVE_DIR = Path("results")
+ts = __import__("datetime").datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+run_name = f"{ts}_model-deeper_opt-adam_lr-{LR}_bs-{BATCH_SIZE}_wd-{WEIGHT_DECAY}"
+SAVE_DIR = project_root / "results" / "step1_architecture_optimization" / run_name
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
-BEST_PATH = SAVE_DIR / "deepercnn_best.pt"
+BEST_PATH = SAVE_DIR / "best.pt"
 
 
 def get_device():
@@ -99,7 +107,7 @@ def main():
     print(device)
 
     train_loader, val_loader, test_loader, class_names = get_dataloaders(
-        data_dir=DATA_DIR,
+        data_dir=str(DATA_DIR),
         batch_size=BATCH_SIZE,
         img_size=IMG_SIZE,
         train_ratio=0.7,

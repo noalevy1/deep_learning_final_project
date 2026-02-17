@@ -16,7 +16,7 @@ from models import SimpleCNN, SimpleCNN_BN, DeeperCNN
 
 @dataclass
 class ExperimentConfig:
-    data_dir: str
+    data_dir: str(DATA_DIR)
     model: str                 # "simple" | "deeper"
     optimizer: str             # "adam" | "sgd"
     img_size: int = 224
@@ -52,6 +52,9 @@ def set_seed(seed: int):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
+def get_project_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
 
 def build_model(name: str, num_classes: int, img_size: int, dropout_p: float):
     name = name.lower()
@@ -61,7 +64,7 @@ def build_model(name: str, num_classes: int, img_size: int, dropout_p: float):
         return SimpleCNN_BN(num_classes=num_classes, img_size=img_size, dropout_p=dropout_p)
     if name == "deeper":
         return DeeperCNN(num_classes=num_classes, img_size=img_size, dropout_p=dropout_p)
-    raise ValueError("model must be: simple | deeper")
+    raise ValueError("model must be: simple | simple_bn | deeper")
 
 
 def build_optimizer(name: str, params, lr: float, weight_decay: float, momentum: float):
@@ -181,11 +184,12 @@ def run_single_experiment(cfg: ExperimentConfig, results_root: str = "results"):
 
     ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     run_name = (
-        f"{ts}_step3_model-{cfg.model}_opt-{cfg.optimizer}_lr-{cfg.lr}"
+        f"{ts}_model-{cfg.model}_opt-{cfg.optimizer}_lr-{cfg.lr}"
         f"_bs-{cfg.batch_size}_wd-{cfg.weight_decay}"
         f"_drop-{cfg.dropout_p}_aug-{cfg.augment}_norm-{cfg.normalize}"
-        f"_pre-{Path(cfg.pretrained_path).stem}" if cfg.pretrained_path else ""
     )
+    if cfg.pretrained_path:
+        run_name += f"_pre-{Path(cfg.pretrained_path).stem}"
     run_dir = Path(results_root) / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -267,8 +271,10 @@ def run_many_experiments(configs: list[ExperimentConfig], results_root: str = "r
 
     return summary
 
+
 if __name__ == "__main__":
-    DATA_DIR = r"/Users/noalevy/Desktop/Desktop - Noa’s MacBook Pro/School/MTA/third year/first semester/deep learning/data"
+    project_root = get_project_root()
+    DATA_DIR = project_root / "data"
 
     print("start running experiments")
 

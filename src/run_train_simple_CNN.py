@@ -7,6 +7,12 @@ from data import get_dataloaders
 from models import SimpleCNN
 
 
+def get_project_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+project_root = get_project_root()
+DATA_DIR = project_root / "data"
 IMG_SIZE = 224
 BATCH_SIZE = 16
 EPOCHS = 20
@@ -14,9 +20,11 @@ LR = 1e-3
 WEIGHT_DECAY = 0.0
 SEED = 42
 
-SAVE_DIR = Path("results")
+ts = __import__("datetime").datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+run_name = f"{ts}_model-simple_opt-adam_lr-{LR}_bs-{BATCH_SIZE}_wd-{WEIGHT_DECAY}"
+SAVE_DIR = project_root / "results" / "step1_architecture_optimization" / run_name
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
-BEST_PATH = SAVE_DIR / "simplecnn_sgd_best.pt"
+BEST_PATH = SAVE_DIR / "best.pt"
 
 
 def get_device():
@@ -100,7 +108,7 @@ def main():
     print(device)
 
     train_loader, val_loader, test_loader, class_names = get_dataloaders(
-        data_dir=DATA_DIR,
+        data_dir=str(DATA_DIR),
         batch_size=BATCH_SIZE,
         img_size=IMG_SIZE,
         train_ratio=0.7,
@@ -137,10 +145,12 @@ def main():
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             torch.save(
-                {"model_state_dict": model.state_dict(),
-                 "img_size": IMG_SIZE,
-                 "class_names": class_names,
-                 "best_val_acc": best_val_acc},
+                {
+                    "model_state_dict": model.state_dict(),
+                    "img_size": IMG_SIZE,
+                    "class_names": class_names,
+                    "best_val_acc": best_val_acc,
+                },
                 BEST_PATH
             )
             print(f"saved {BEST_PATH} (best_val_acc={best_val_acc:.4f})")
@@ -153,8 +163,8 @@ def main():
     print(f"test loss {test_loss:.4f} acc {test_acc:.4f}")
 
     plot_history(history, SAVE_DIR)
-    print(str(SAVE_DIR / "simplecnn_loss.png"))
-    print(str(SAVE_DIR / "simplecnn_accuracy.png"))
+    print(str(SAVE_DIR / "loss.png"))
+    print(str(SAVE_DIR / "accuracy.png"))
 
 
 if __name__ == "__main__":

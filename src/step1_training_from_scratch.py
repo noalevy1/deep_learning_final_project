@@ -118,7 +118,8 @@ def build_optimizer(name: str, params, lr: float, weight_decay: float, momentum:
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--data_dir", type=str, required=True)
+    project_root = Path(__file__).resolve().parent.parent  # <project_root>
+    p.add_argument("--data_dir", type=str, default=str(project_root / "data"))
     p.add_argument("--model", type=str, choices=["simple", "deeper"], default="simple")
     p.add_argument("--optimizer", type=str, choices=["adam", "sgd"], default="adam")
     p.add_argument("--img_size", type=int, default=224)
@@ -130,6 +131,7 @@ def main():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--normalize", type=str, choices=["none", "imagenet"], default="none")
     args = p.parse_args()
+    args.data_dir = str(Path(args.data_dir).resolve())
 
     set_seed(args.seed)
     device = get_device()
@@ -164,7 +166,7 @@ def main():
         f"{ts}_model-{args.model}_opt-{args.optimizer}_lr-{args.lr}"
         f"_bs-{args.batch_size}_wd-{args.weight_decay}_norm-{args.normalize}"
     )
-    run_dir = Path("results") / run_name
+    run_dir = project_root / "results" / "step1_architecture_optimization" / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
 
     config = vars(args) | {"class_names": class_names, "device": str(device), "run_name": run_name}
