@@ -13,3 +13,6 @@ src/data/
 __pycache__/
 *.pyc
 
+
+# secrets
+ token.txt
