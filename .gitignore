@@ -16,3 +16,6 @@ __pycache__/
 
 # secrets
  token.txt
+
+# ignore downloaded datasets
+/data_external/cifar10/
