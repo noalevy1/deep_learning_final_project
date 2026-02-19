@@ -139,7 +139,7 @@ def main():
     normalize = None if args.normalize == "none" else args.normalize
 
     train_loader, val_loader, test_loader, class_names = get_dataloaders(
-        data_dir="args.data_dir",
+        data_dir=args.data_dir,
         batch_size=args.batch_size,
         img_size=args.img_size,
         train_ratio=0.7,

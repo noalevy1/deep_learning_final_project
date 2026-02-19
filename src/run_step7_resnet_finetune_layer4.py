@@ -17,8 +17,6 @@ if __name__ == "__main__":
         augment="none",
         normalize="imagenet",
         seed=42,
-        pretrained=True,
-        freeze_mode="layer4",
     )
 
     print(run_single_experiment(cfg, results_root=str(results_root)))

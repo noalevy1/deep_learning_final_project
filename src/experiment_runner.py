@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime
 import json
 import csv
-
+from torchvision.models import resnet50, ResNet50_Weights
 import torch
 import torch.nn as nn
 #import matplotlib.pyplot as plt
@@ -33,7 +33,7 @@ class ExperimentConfig:
     dropout_p: float = 0.2
     augment: str = "none"   # "none" | "strong"
     pretrained_path: str | None = None
-
+    freeze_backbone: bool = False
 
 def get_device():
     if torch.cuda.is_available():
@@ -58,13 +58,23 @@ def get_project_root() -> Path:
 
 def build_model(name: str, num_classes: int, img_size: int, dropout_p: float):
     name = name.lower()
+
     if name == "simple":
         return SimpleCNN(num_classes=num_classes, img_size=img_size, dropout_p=dropout_p)
+
     if name == "simple_bn":
         return SimpleCNN_BN(num_classes=num_classes, img_size=img_size, dropout_p=dropout_p)
+
     if name == "deeper":
         return DeeperCNN(num_classes=num_classes, img_size=img_size, dropout_p=dropout_p)
-    raise ValueError("model must be: simple | simple_bn | deeper")
+
+    if name == "resnet50":
+        m = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)  # pretrained ImageNet
+        in_f = m.fc.in_features
+        m.fc = nn.Linear(in_f, num_classes)                   # replace final layer
+        return m
+
+    raise ValueError("model must be: simple | simple_bn | deeper | resnet50")
 
 
 def build_optimizer(name: str, params, lr: float, weight_decay: float, momentum: float):
@@ -159,11 +169,16 @@ def run_single_experiment(cfg: ExperimentConfig, results_root: str = "results"):
         test_ratio=cfg.test_ratio,
         seed=cfg.seed,
         normalize=normalize,
-        augment=cfg.augment
+        augment=cfg.augment,
     )
 
     num_classes = len(class_names)
-    model = build_model(cfg.model, num_classes=num_classes, img_size=cfg.img_size, dropout_p=cfg.dropout_p).to(device)
+    model = build_model(
+        cfg.model,
+        num_classes=num_classes,
+        img_size=cfg.img_size,
+        dropout_p=cfg.dropout_p,
+    ).to(device)
 
     # ---- load pretrained weights (Step 5) ----
     if cfg.pretrained_path:
@@ -179,8 +194,25 @@ def run_single_experiment(cfg: ExperimentConfig, results_root: str = "results"):
         print(f" - missing keys: {len(missing)}")
         print(f" - unexpected keys: {len(unexpected)}")
 
+    # ---- freeze backbone (Step 6: ResNet50 frozen) ----
+    # Requires: cfg has a boolean field freeze_backbone (default False)
+    if getattr(cfg, "freeze_backbone", False):
+        for p in model.parameters():
+            p.requires_grad = False
+
+        # For torchvision ResNet50 the classifier head is model.fc
+        if hasattr(model, "fc"):
+            for p in model.fc.parameters():
+                p.requires_grad = True
+        else:
+            raise ValueError("freeze_backbone=True but model has no attribute 'fc' (expected for ResNet-like models).")
+
     criterion = nn.CrossEntropyLoss()
-    optimizer = build_optimizer(cfg.optimizer, model.parameters(), cfg.lr, cfg.weight_decay, cfg.momentum)
+
+    # IMPORTANT: optimize only trainable params (so freezing actually works)
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = build_optimizer(cfg.optimizer, trainable_params, cfg.lr, cfg.weight_decay, cfg.momentum)
 
     ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     run_name = (
@@ -190,6 +222,9 @@ def run_single_experiment(cfg: ExperimentConfig, results_root: str = "results"):
     )
     if cfg.pretrained_path:
         run_name += f"_pre-{Path(cfg.pretrained_path).stem}"
+    if getattr(cfg, "freeze_backbone", False):
+        run_name += "_freeze-backbone"
+
     run_dir = Path(results_root) / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
 

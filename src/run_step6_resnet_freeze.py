@@ -1,5 +1,6 @@
-from pathlib import Path
 from experiment_runner import ExperimentConfig, run_single_experiment, get_project_root
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 if __name__ == "__main__":
     project_root = get_project_root()
@@ -18,8 +19,7 @@ if __name__ == "__main__":
         augment="none",
         normalize="imagenet",
         seed=42,
-        pretrained=True,
-        freeze_mode="backbone",
+        freeze_backbone=True,
     )
 
     print(run_single_experiment(cfg, results_root=str(results_root)))

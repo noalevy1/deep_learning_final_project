@@ -27,7 +27,7 @@ def main():
         transforms.ToTensor(),
     ])
 
-    cifar_root = project_root / "data" / "cifar10"
+    cifar_root = project_root / "data_external" / "cifar10"
 
     train_ds = datasets.CIFAR10(root=str(cifar_root), train=True, download=True, transform=transform)
     test_ds  = datasets.CIFAR10(root=str(cifar_root), train=False, download=True, transform=transform)
